@@ -15,84 +15,77 @@
 // ============================================================================
 
 // Inclusão das bibliotecas padrão necessárias para entrada/saída, alocação de memória, manipulação de strings e tempo.
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 // --- Constantes Globais ---
 // Definem valores fixos para o número de territórios, missões e tamanho máximo de strings, facilitando a manutenção.
-
+#define MAX_TERRITORIOS 5
+#define MAX_MISSOES 100
+#define TAM_STRING 100
 // --- Estrutura de Dados ---
 // Define a estrutura para um território, contendo seu nome, a cor do exército que o domina e o número de tropas.
+typedef struct {
+    char nome[TAM_STRING];
+    char cor[TAM_STRING];
+    int tropas;
+} Territorio;
 
-// --- Protótipos das Funções ---
-// Declarações antecipadas de todas as funções que serão usadas no programa, organizadas por categoria.
-// Funções de setup e gerenciamento de memória:
-// Funções de interface com o usuário:
-// Funções de lógica principal do jogo:
-// Função utilitária:
+void lerLinha(char *dest, size_t tam) {
+    if (fgets(dest, (int)tam, stdin)) {
+        size_t n = strlen(dest);
+        if (n && dest[n-1] == '\n') dest[n-1] = '\0';
+        else { // se estourar o buffer, limpa resto da linha
+            int c; while ((c = getchar()) != '\n' && c != EOF) {}
+        }
+    } else {
+        dest[0] = '\0';
+    }
+}
 
-// --- Função Principal (main) ---
-// Função principal que orquestra o fluxo do jogo, chamando as outras funções em ordem.
-int main() {
-    // 1. Configuração Inicial (Setup):
-    // - Define o locale para português.
-    // - Inicializa a semente para geração de números aleatórios com base no tempo atual.
-    // - Aloca a memória para o mapa do mundo e verifica se a alocação foi bem-sucedida.
-    // - Preenche os territórios com seus dados iniciais (tropas, donos, etc.).
-    // - Define a cor do jogador e sorteia sua missão secreta.
+// util: limpa o '\n' que sobra após scanf
+void limparBuffer(void) {
+    int c; while ((c = getchar()) != '\n' && c != EOF) {}
+}
 
-    // 2. Laço Principal do Jogo (Game Loop):
-    // - Roda em um loop 'do-while' que continua até o jogador sair (opção 0) ou vencer.
-    // - A cada iteração, exibe o mapa, a missão e o menu de ações.
-    // - Lê a escolha do jogador e usa um 'switch' para chamar a função apropriada:
-    //   - Opção 1: Inicia a fase de ataque.
-    //   - Opção 2: Verifica se a condição de vitória foi alcançada e informa o jogador.
-    //   - Opção 0: Encerra o jogo.
-    // - Pausa a execução para que o jogador possa ler os resultados antes da próxima rodada.
+int main(void) {
+    Territorio mapa[MAX_TERRITORIOS];
 
-    // 3. Limpeza:
-    // - Ao final do jogo, libera a memória alocada para o mapa para evitar vazamentos de memória.
+    printf("=== Cadastro Inicial dos Territorios ===\n\n");
+
+    // Entrada: nome, cor, tropas para cada um dos 5
+    for (int i = 0; i < MAX_TERRITORIOS; i++) {
+        printf("Territorio %d/%d\n", i + 1, MAX_TERRITORIOS);
+
+        printf("  Nome: ");
+        lerLinha(mapa[i].nome, sizeof mapa[i].nome);
+
+        printf("  Cor do Exercito: ");
+        lerLinha(mapa[i].cor, sizeof mapa[i].cor);
+
+        int ok = 0;
+        while (!ok) {
+            printf("  Numero de Tropas (>= 0): ");
+            if (scanf("%d", &mapa[i].tropas) == 1 && mapa[i].tropas >= 0) {
+                ok = 1;
+            } else {
+                printf("  Valor invalido. Tente novamente.\n");
+            }
+            limparBuffer();
+        }
+        printf("\n");
+    }
+
+    // Exibição organizada (tabela simples)
+    printf("=== Estado Atual do Mapa ===\n");
+    printf("+-----+------------------------------+------------------------------+--------+\n");
+    printf("| ID  | Nome                         | Cor do Exercito             | Tropas |\n");
+    printf("+-----+------------------------------+------------------------------+--------+\n");
+    for (int i = 0; i < MAX_TERRITORIOS; i++) {
+        printf("| %3d | %-28.28s | %-28.28s | %6d |\n",
+               i, mapa[i].nome, mapa[i].cor, mapa[i].tropas);
+    }
+    printf("+-----+------------------------------+------------------------------+--------+\n");
 
     return 0;
 }
-
-// --- Implementação das Funções ---
-
-// alocarMapa():
-// Aloca dinamicamente a memória para o vetor de territórios usando calloc.
-// Retorna um ponteiro para a memória alocada ou NULL em caso de falha.
-
-// inicializarTerritorios():
-// Preenche os dados iniciais de cada território no mapa (nome, cor do exército, número de tropas).
-// Esta função modifica o mapa passado por referência (ponteiro).
-
-// liberarMemoria():
-// Libera a memória previamente alocada para o mapa usando free.
-
-// exibirMenuPrincipal():
-// Imprime na tela o menu de ações disponíveis para o jogador.
-
-// exibirMapa():
-// Mostra o estado atual de todos os territórios no mapa, formatado como uma tabela.
-// Usa 'const' para garantir que a função apenas leia os dados do mapa, sem modificá-los.
-
-// exibirMissao():
-// Exibe a descrição da missão atual do jogador com base no ID da missão sorteada.
-
-// faseDeAtaque():
-// Gerencia a interface para a ação de ataque, solicitando ao jogador os territórios de origem e destino.
-// Chama a função simularAtaque() para executar a lógica da batalha.
-
-// simularAtaque():
-// Executa a lógica de uma batalha entre dois territórios.
-// Realiza validações, rola os dados, compara os resultados e atualiza o número de tropas.
-// Se um território for conquistado, atualiza seu dono e move uma tropa.
-
-// sortearMissao():
-// Sorteia e retorna um ID de missão aleatório para o jogador.
-
-// verificarVitoria():
-// Verifica se o jogador cumpriu os requisitos de sua missão atual.
-// Implementa a lógica para cada tipo de missão (destruir um exército ou conquistar um número de territórios).
-// Retorna 1 (verdadeiro) se a missão foi cumprida, e 0 (falso) caso contrário.
-
-// limparBufferEntrada():
-// Função utilitária para limpar o buffer de entrada do teclado (stdin), evitando problemas com leituras consecutivas de scanf e getchar.
